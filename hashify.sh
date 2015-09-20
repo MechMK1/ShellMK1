@@ -21,6 +21,7 @@ function show_usage
 	echo " -f       |--force        : Force rename of unknown multi-suffix files"
 	echo " -o DIR   |--out DIR      : Move files to DIR instead of their source directory"
 	echo " -g DGST  |--digest DGST  : Use DGST instead of default ($DGST)"
+	echo " -t       |--test         : Test if all required tools are available and print report"
 	echo " -h       |--help         : Show this message and exit"
 }
 
@@ -58,10 +59,55 @@ function test_digest
 	esac
 }
 
-#Helper function returns hash according to $FILE and $DGST
-function get_hash
+function test_tools
 {
-	echo "$(openssl dgst -r -$DGST $FILE 2>/dev/null | cut -d ' ' -f1)"
+	OK=0
+
+	if shopt -q extglob
+	then echo "Bash extglob set...OK"
+	else echo "Bash extglob set...FAIL"
+		OK=-1
+	fi
+
+	if which openssl > /dev/null
+	then echo "OpenSSL usable.....OK"
+	else echo "OpenSSL usable.....FAIL"
+		OK=-1
+	fi
+
+	if which cut > /dev/null
+	then echo "cut usable.........OK"
+	else echo "cut usable.........FAIL <- WTF"
+		OK=-1
+	fi
+
+	if which mv > /dev/null
+	then echo "mv usable..........OK"
+	else echo "mv usable..........FAIL <- WTF"
+		OK=-1
+	fi
+
+	if which cp > /dev/null
+	then echo "cp usable..........OK"
+	else echo "cp usable..........FAIL <- WTF"
+		OK=-1
+	fi
+
+	if which dirname > /dev/null
+	then echo "dirname usable.....OK"
+	else echo "dirname usable.....FAIL"
+		OK=-1
+	fi
+
+	echo ""
+
+	if [ "$OK" = "0" ]
+	then
+		echo "Everything ok! $0 should be usable without problems!"
+		echo "Protip: The author suggests leaving COMMON_SENSE on 'enabled' at all times"
+	else
+		echo "Some problems were detected. See above which tests failed"
+	fi
 }
 
 #Do actual IO work here
@@ -128,6 +174,10 @@ while test $# -gt 0; do
 	case "$1" in
 		-h|--help)
 			show_usage
+			exit 0
+			;;
+		-t|--test)
+			test_tools
 			exit 0
 			;;
 		-d|--dry)
