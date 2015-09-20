@@ -28,7 +28,22 @@ function show_usage
 	echo ""
 	echo "Options:"
 	echo " -d|--dry: Enable Dry-Running. No files will be renamed"
+	echo " -c|--copy: Copy files instead of renaming"
 	echo " -h|--help: Show this message and exit"
+}
+
+function commit_changes
+{
+	if [ -n "$COPY" ]
+	then local CMD="cp"
+	else local CMD="mv"
+	fi
+
+	if [ -z "$DRY" ]
+	then "$CMD" "$FILE" "$DIR/$1"
+	else echo "$CMD \"$FILE\" \"$DIR/$1\""
+	fi
+
 }
 
 #Main function which does all the work
@@ -54,22 +69,13 @@ function process_file {
 				continue
 				;;
 			2)
-				if [ -z "$DRY" ]
-				then mv "$FILE" "$DIR/$HASH.${FILE#*.}"
-				else echo "mv \"$FILE\" \"$DIR/$HASH.${FILE#*.}\""
-				fi
+				commit_changes "$HASH.${FILE#*.}"
 				;;
 			1)
-				if [ -z "$DRY" ]
-				then mv "$FILE" "$DIR/$HASH.${FILE#*.}"
-				else echo "mv \"$FILE\" \"$DIR/$HASH.${FILE#*.}\""
-				fi
+				commit_changes "$HASH.${FILE#*.}"
 				;;
 			0)
-				if [ -z "$DRY" ]
-				then mv "$FILE" "$DIR/$HASH"
-				else echo "mv \"$FILE\" \"$DIR/$HASH\""
-				fi
+				commit_changes "$HASH"
 				;;
 			-1|*)
 				echo "Unknown case. Skipping file '$FILE'"
@@ -92,6 +98,12 @@ fi
 #When the first parameter is -d or --dry, set DRY and shift parameters forward
 if [ "$1" = "-d" ] || [ "$1" = "--dry" ]
 then DRY=1
+shift
+fi
+
+#When the first parameter is -c or --copy, set COPY and shift parameters forward
+if [ "$1" = "-c" ] || [ "$1" = "--copy" ]
+then COPY=1
 shift
 fi
 
