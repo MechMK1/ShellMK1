@@ -28,6 +28,7 @@ function showusage
 	echo ""
 	echo "Options:"
 	echo " -d|--dry: Enable Dry-Running. No files will be renamed"
+	echo " -h|--help: Show this message and exit"
 }
 
 function processFile {
@@ -79,11 +80,17 @@ then DRY=1
 shift
 fi
 
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]
+then
+	showusage
+	exit 0
+fi
+
 if [ "$#" -lt 1 ]
 then
 	echo "Error: Missing parameter FILE"
 	showusage
-	exit 1;
+	exit 1
 fi
 
 for arg in "$@"
