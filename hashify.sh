@@ -136,17 +136,25 @@ function process_file {
 
 	if [ -f "$FILE" ]
 	then
+		#Get directory part of filename and make sure it's writable
 		DIR="$(dirname $FILE)"
 		if [ ! -w "$DIR" ]
 		then
 			echo "Error: '$DIR' is not writable. Renaming not possible"
 			continue
 		fi
+
+		#Calculate hash and make a mini-self test.
 		HASH="$(openssl dgst -r -$DGST $FILE 2>/dev/null | cut -d ' ' -f1)"
+		if [ -z "$HASH" ]
+		then echo "Error: Hash is empty. This should never happen. Please file a bug report at https://github.com/MechMK1/ShellMK1"; exit 1;
+		fi
+
+		#Get rename mode. 3=unknown multi-suffix, 2=known multi-suffix, 1=normal suffix, 0=no suffix, -1=fail
 		MODE="$(get_suffix_case \"$FILE\")"
 		case "$MODE" in
 			3)
-				echo "Unknown multi-extension '${FILE#*.}'. $DGST hash for '$FILE' is '$HASH'"
+				echo "Unknown multi-suffix '${FILE#*.}'. $DGST hash for '$FILE' is '$HASH'"
 				continue
 				;;
 			2)
