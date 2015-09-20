@@ -15,7 +15,12 @@ function get_suffix_case
 		*.o.*);&
 		*.warc.*)	echo 2;;  #File has known multi-suffix (thanks to waddlesplash <https://github.com/waddlesplash>
 
-		*.*.*)		echo 3;;  #File likely has dot in the middle, but you can never be sure - e.g.: SomeThing.min.js
+		*.*.*)		if [ -n "$FORCE" ]	#File likely has dot in the middle, but you can never be sure - e.g.: SomeThing.min.js
+				then echo 2		#If force is set, treat unknown multi-suffix file as if suffix was known
+				else echo 3		#Otherwise treat it as unknown multi-suffix
+				fi
+
+				;;
 		*.*)		echo 1;;  #File likely has normal suffix. Chance of failure is low
 		!(*.*))		echo 0;;  #File has no dot inside
 		*)		echo -1;; #Something else - will always abort
@@ -27,9 +32,11 @@ function show_usage
 	echo "Usage: $0 [OPTIONS] FILE"
 	echo ""
 	echo "Options:"
-	echo " -d|--dry: Enable Dry-Running. No files will be renamed"
-	echo " -c|--copy: Copy files instead of renaming"
-	echo " -h|--help: Show this message and exit"
+	echo " -d	|--dry		: Enable Dry-Running. No files will be renamed"
+	echo " -c	|--copy		: Copy files instead of renaming"
+	echo " -f	|--force	: Force rename of unknown multi-suffix files."
+	echo " -o DIR	|--out DIR	: Move files to DIR instead of their source directory"
+	echo " -h	|--help		: Show this message and exit"
 }
 
 function commit_changes
@@ -39,9 +46,14 @@ function commit_changes
 	else local CMD="mv"
 	fi
 
+	if [ -n "$OUT" ]
+	then local TARGET="$OUT"
+	else local TARGET="$DIR"
+	fi
+
 	if [ -z "$DRY" ]
-	then "$CMD" "$FILE" "$DIR/$1"
-	else echo "$CMD \"$FILE\" \"$DIR/$1\""
+	then "$CMD" "$FILE" "$TARGET/$1"
+	else echo "$CMD \"$FILE\" \"$TARGET/$1\""
 	fi
 
 }
@@ -106,6 +118,25 @@ if [ "$1" = "-c" ] || [ "$1" = "--copy" ]
 then COPY=1
 shift
 fi
+
+#When the first parameter is -f or --force, set FORCE and shift parameters forward
+if [ "$1" = "-f" ] || [ "$1" = "--force" ]
+then FORCE=1
+shift
+fi
+
+#When the first parameter is -c or --copy, set COPY and shift parameters forward
+if [ "$1" = "-o" ] || [ "$1" = "--out" ]
+then
+	if [ -d "${2%/}" ] && [ -w "${2%/}" ]
+	then OUT="${2%/}"
+	shift 2
+	else
+		echo "Error: $1 requires a writable directory as parameter, '$2' given"
+		exit 1
+	fi
+fi
+
 
 #If no other parameters are found, print error and show usage, then exit
 if [ "$#" -lt 1 ]
