@@ -42,6 +42,7 @@ function processFile {
 				echo "No suitable suffix could be found."
 				echo "MD5ify will not risk damaging your file extensions. Aborting"
 				echo "The MD5 sum for '$FILE' is '$HASH'"
+				continue
 				;;
 			2)
 				if [ -z "$DRY" ]
