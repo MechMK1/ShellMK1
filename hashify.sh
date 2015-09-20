@@ -3,12 +3,26 @@
 #Summary: Rename file to hash of file
 #Author: David Stockinger <https://github.com/MechMK1>
 
+#Enable extglob or else get_suffix_case will fail
+shopt -s extglob
+
 #Config
 #Default hash digest, will be overwritten by -g
 DGST="md5"
 
-#Enable extglob or else get_suffix_case will fail
-shopt -s extglob
+#Displays a nice usage menu and stops
+function show_usage
+{
+	echo "Usage: $0 [OPTIONS] FILE"
+	echo ""
+	echo "Options:"
+	echo " -d       |--dry          : Enable Dry-Running. No files will be renamed"
+	echo " -c       |--copy         : Copy files instead of renaming"
+	echo " -f       |--force        : Force rename of unknown multi-suffix files"
+	echo " -o DIR   |--out DIR      : Move files to DIR instead of their source directory"
+	echo " -g DGST  |--digest DGST  : Use DGST instead of default ($DGST)"
+	echo " -h       |--help         : Show this message and exit"
+}
 
 #Returns which use-case to handle according to the files suffix, suffixes or lack thereof
 function get_suffix_case
@@ -29,20 +43,6 @@ function get_suffix_case
 		!(*.*))		echo 0;;  #File has no dot inside
 		*)		echo -1;; #Something else - will always abort
 	esac
-}
-
-#Displays a nice usage menu and stops
-function show_usage
-{
-	echo "Usage: $0 [OPTIONS] FILE"
-	echo ""
-	echo "Options:"
-	echo " -d       |--dry          : Enable Dry-Running. No files will be renamed"
-	echo " -c       |--copy         : Copy files instead of renaming"
-	echo " -f       |--force        : Force rename of unknown multi-suffix files."
-	echo " -o DIR   |--out DIR      : Move files to DIR instead of their source directory"
-	echo " -g DGST  |--digest DGST  : Use DGST instead of default ($DGST)"
-	echo " -h       |--help         : Show this message and exit"
 }
 
 #Tests if digest given by -g is valid
