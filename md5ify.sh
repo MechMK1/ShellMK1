@@ -3,11 +3,11 @@
 #Summary: Rename file to md5sum of file
 #Author: David Stockinger <https://github.com/MechMK1>
 
-#Enable extglob or else getExts will fail
+#Enable extglob or else get_suffix_case will fail
 shopt -s extglob
 
 #Returns which use-case to handle according to the files suffix, suffixes or lack thereof
-function getExts
+function get_suffix_case
 {
 	case "$1" in
 		*.tar.*);&
@@ -22,7 +22,7 @@ function getExts
 	esac
 }
 
-function showusage
+function show_usage
 {
 	echo "Usage: $0 [OPTIONS] FILE"
 	echo ""
@@ -31,14 +31,14 @@ function showusage
 	echo " -h|--help: Show this message and exit"
 }
 
-function processFile {
+function process_file {
 	FILE="$1"
 
 	if [ -f "$FILE" ]
 	then
 		HASH="$(openssl dgst -md5 $FILE | tail -c 33)"
 		DIR="$(dirname $FILE)"
-		MODE="$(getExts \"$FILE\")"
+		MODE="$(get_suffix_case \"$FILE\")"
 		case "$MODE" in
 			3)	echo "File has unknown multi-extension '${FILE#*.}'"
 				echo "No suitable suffix could be found."
@@ -83,18 +83,18 @@ fi
 
 if [ "$1" = "-h" ] || [ "$1" = "--help" ]
 then
-	showusage
+	show_usage
 	exit 0
 fi
 
 if [ "$#" -lt 1 ]
 then
 	echo "Error: Missing parameter FILE"
-	showusage
+	show_usage
 	exit 1
 fi
 
 for arg in "$@"
 do
-	processFile "$arg"
+	process_file "$arg"
 done
