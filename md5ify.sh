@@ -32,11 +32,29 @@ function show_usage
 	echo "Usage: $0 [OPTIONS] FILE"
 	echo ""
 	echo "Options:"
-	echo " -d	|--dry		: Enable Dry-Running. No files will be renamed"
-	echo " -c	|--copy		: Copy files instead of renaming"
-	echo " -f	|--force	: Force rename of unknown multi-suffix files."
-	echo " -o DIR	|--out DIR	: Move files to DIR instead of their source directory"
-	echo " -h	|--help		: Show this message and exit"
+	echo " -d       |--dry          : Enable Dry-Running. No files will be renamed"
+	echo " -c       |--copy         : Copy files instead of renaming"
+	echo " -f       |--force        : Force rename of unknown multi-suffix files."
+	echo " -o DIR   |--out DIR      : Move files to DIR instead of their source directory"
+	echo " -g DGST  |--digest DGST  : Use DGST instead of MD5 as default"
+	echo " -h       |--help         : Show this message and exit"
+}
+
+function test_digest
+{
+	case "$1" in
+		md4|md5|ripemd160|sha|sha1|sha224|sha256|sha384|sha512|whirlpool)
+			echo "0"
+			;;	#Digest is whitelisted and can be passed to OpenSSL
+		*)
+			echo "-1"
+			;;
+	esac
+}
+
+function get_hash
+{
+	echo "$(openssl dgst -r -$DGST $FILE 2>/dev/null | cut -d ' ' -f1)"
 }
 
 function commit_changes
@@ -70,8 +88,7 @@ function process_file {
 			echo "Error: '$DIR' is not writable. Renaming not possible"
 			continue
 		fi
-
-		HASH="$(openssl dgst -md5 $FILE | tail -c 33)"
+		HASH="$(openssl dgst -r -$DGST $FILE 2>/dev/null | cut -d ' ' -f1)"
 		MODE="$(get_suffix_case \"$FILE\")"
 		case "$MODE" in
 			3)	echo "File has unknown multi-extension '${FILE#*.}'"
@@ -100,6 +117,8 @@ function process_file {
 	fi
 }
 
+DGST="md5"
+
 #When the first parameter is -h or --help, show help and exit
 if [ "$1" = "-h" ] || [ "$1" = "--help" ]
 then
@@ -125,7 +144,7 @@ then FORCE=1
 shift
 fi
 
-#When the first parameter is -c or --copy, set COPY and shift parameters forward
+#When the first parameter is -o or --out and second is a writable directory, output to that directory instead
 if [ "$1" = "-o" ] || [ "$1" = "--out" ]
 then
 	if [ -d "${2%/}" ] && [ -w "${2%/}" ]
@@ -137,6 +156,17 @@ then
 	fi
 fi
 
+#When the first parameter is -o or --out and second is a writable directory, output to that directory instead
+if [ "$1" = "-g" ] || [ "$1" = "--dgst" ]
+then
+	if [ -n "${2}" ] && [ "$(test_digest ${2})" = "0" ]
+	then DGST="${2}"
+	shift 2
+	else
+		echo "Error: $1 requires a valid message-digest, '$2' given"
+		exit 1
+	fi
+fi
 
 #If no other parameters are found, print error and show usage, then exit
 if [ "$#" -lt 1 ]
