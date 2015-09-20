@@ -31,6 +31,7 @@ function show_usage
 	echo " -h|--help: Show this message and exit"
 }
 
+#Main function which does all the work
 function process_file {
 	FILE="$1"
 
@@ -75,18 +76,20 @@ function process_file {
 	fi
 }
 
-#When the first parameter is -d or --dry
-if [ "$1" = "-d" ] || [ "$1" = "--dry" ]
-then DRY=1
-shift
-fi
-
+#When the first parameter is -h or --help, show help and exit
 if [ "$1" = "-h" ] || [ "$1" = "--help" ]
 then
 	show_usage
 	exit 0
 fi
 
+#When the first parameter is -d or --dry, set DRY and shift parameters forward
+if [ "$1" = "-d" ] || [ "$1" = "--dry" ]
+then DRY=1
+shift
+fi
+
+#If no other parameters are found, print error and show usage, then exit
 if [ "$#" -lt 1 ]
 then
 	echo "Error: Missing parameter FILE"
@@ -94,6 +97,7 @@ then
 	exit 1
 fi
 
+#Call main function with each file as parameter iteratively
 for arg in "$@"
 do
 	process_file "$arg"
