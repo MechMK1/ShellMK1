@@ -22,53 +22,70 @@ function getExts
 	esac
 }
 
-FILE="$1"
-#Set DRY to any value to enable dry-running
-DRY=
+function showusage
+{
+	echo "Usage: $0 [OPTIONS] FILE"
+	echo ""
+	echo "Options:"
+	echo " -d|--dry: Enable Dry-Running. No files will be renamed"
+}
 
-if [ -f "$FILE" ]
-then
-	HASH="$(openssl dgst -md5 $FILE | tail -c 33)"
-	MODE="$(getExts \"$FILE\")"
-	case "$MODE" in
-		3)	echo "File has unknown multi-extension '${FILE#*.}'"
-			echo "No suitable suffix could be found."
-			echo "MD5ify will not risk damaging your file extensions. Aborting"
-			echo "The MD5 sum for '$FILE' is '$HASH'"
-			exit 1
-			;;
-		2)	echo "File has a know double-extension '${FILE#*.}'"
-			echo "Renaming '$FILE' to '$HASH.${FILE#*.}'"
-			if [ -z "$DRY" ]
-			then mv "$FILE" "$HASH.${FILE#*.}"
-			else echo "Dry-run only!"
-			fi
-			exit 0
-			;;
-		1)
-			echo "File has ${FILE#*.} extension"
-			echo "Renaming '$FILE' to '$HASH.${FILE#*.}'"
-			if [ -z "$DRY" ]
-			then mv "$FILE" "$HASH.${FILE#*.}"
-			else echo "Dry-run only!"
-			fi
-			exit 0
-			;;
-		0)
-			echo "File has no extension"
-			echo "Renaming '$FILE' to '$HASH'"
-			if [ -z "$DRY" ]
-			then mv "$FILE" "$HASH"
-			else echo "Dry-run only!"
-			fi
-			exit 0
-			;;
-		-1|*)
-			echo "Unknown case. Aborting!"
-			exit 1;;
-	esac
-else
-	echo "error File '$FILE' not a file or none-existent"
-	echo "Usage: $0 FILE"
-	exit 1
+function processFile {
+	FILE="$1"
+
+	if [ -f "$FILE" ]
+	then
+		HASH="$(openssl dgst -md5 $FILE | tail -c 33)"
+		MODE="$(getExts \"$FILE\")"
+		case "$MODE" in
+			3)	echo "File has unknown multi-extension '${FILE#*.}'"
+				echo "No suitable suffix could be found."
+				echo "MD5ify will not risk damaging your file extensions. Aborting"
+				echo "The MD5 sum for '$FILE' is '$HASH'"
+				;;
+			2)
+				if [ -z "$DRY" ]
+				then mv "$FILE" "$HASH.${FILE#*.}"
+				else echo "mv \"$FILE\" \"$HASH.${FILE#*.}\""
+				fi
+				;;
+			1)
+				if [ -z "$DRY" ]
+				then mv "$FILE" "$HASH.${FILE#*.}"
+				else echo "mv \"$FILE\" \"$HASH.${FILE#*.}\""
+				fi
+				;;
+			0)
+				if [ -z "$DRY" ]
+				then mv "$FILE" "$HASH"
+				else echo "mv \"$FILE\" \"$HASH\""
+				fi
+				;;
+			-1|*)
+				echo "Unknown case. Skipping file '$FILE'"
+				continue
+				;;
+		esac
+	else
+		echo "'$FILE' not a file. Skipping."
+		continue
+	fi
+}
+
+#When the first parameter is -d or --dry
+if [ "$1" = "-d" ] || [ "$1" = "--dry" ]
+then DRY=1
+shift
 fi
+
+if [ "$#" -lt 1 ]
+then
+	echo "Error: Missing parameter FILE"
+	showusage
+	exit 1;
+fi
+
+for arg in "$@"
+do
+	processFile "$arg"
+done
