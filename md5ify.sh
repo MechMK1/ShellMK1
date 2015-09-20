@@ -12,6 +12,7 @@ function getExts
 	case "$1" in
 		*.tar.*);&
 		*.iso.*);&
+		*.o.*);&
 		*.warc.*)	echo 2;;  #File has known multi-suffix (thanks to waddlesplash <https://github.com/waddlesplash>
 
 		*.*.*)		echo 3;;  #File likely has dot in the middle, but you can never be sure - e.g.: SomeThing.min.js
