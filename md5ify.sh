@@ -3,6 +3,10 @@
 #Summary: Rename file to md5sum of file
 #Author: David Stockinger <https://github.com/MechMK1>
 
+#Config
+#Default hash digest
+DGST="md5"
+
 #Enable extglob or else get_suffix_case will fail
 shopt -s extglob
 
@@ -27,6 +31,7 @@ function get_suffix_case
 	esac
 }
 
+#Displays a nice usage menu and stops
 function show_usage
 {
 	echo "Usage: $0 [OPTIONS] FILE"
@@ -40,6 +45,7 @@ function show_usage
 	echo " -h       |--help         : Show this message and exit"
 }
 
+#Tests if digest given by -g is valid
 function test_digest
 {
 	case "$1" in
@@ -48,15 +54,17 @@ function test_digest
 			;;	#Digest is whitelisted and can be passed to OpenSSL
 		*)
 			echo "-1"
-			;;
+			;;	#Anything else will fail
 	esac
 }
 
+#Helper function returns hash according to $FILE and $DGST
 function get_hash
 {
 	echo "$(openssl dgst -r -$DGST $FILE 2>/dev/null | cut -d ' ' -f1)"
 }
 
+#Do actual IO work here
 function commit_changes
 {
 	if [ -n "$COPY" ]
@@ -76,7 +84,7 @@ function commit_changes
 
 }
 
-#Main function which does all the work
+#Process each file individually
 function process_file {
 	FILE="$1"
 
@@ -91,10 +99,8 @@ function process_file {
 		HASH="$(openssl dgst -r -$DGST $FILE 2>/dev/null | cut -d ' ' -f1)"
 		MODE="$(get_suffix_case \"$FILE\")"
 		case "$MODE" in
-			3)	echo "File has unknown multi-extension '${FILE#*.}'"
-				echo "No suitable suffix could be found."
-				echo "MD5ify will not risk damaging your file extensions. Aborting"
-				echo "The MD5 sum for '$FILE' is '$HASH'"
+			3)
+				echo "Unknown multi-extension '${FILE#*.}'. $DGST hash for '$FILE' is '$HASH'"
 				continue
 				;;
 			2)
@@ -117,56 +123,67 @@ function process_file {
 	fi
 }
 
-DGST="md5"
-
-#When the first parameter is -h or --help, show help and exit
-if [ "$1" = "-h" ] || [ "$1" = "--help" ]
-then
-	show_usage
-	exit 0
-fi
-
-#When the first parameter is -d or --dry, set DRY and shift parameters forward
-if [ "$1" = "-d" ] || [ "$1" = "--dry" ]
-then DRY=1
-shift
-fi
-
-#When the first parameter is -c or --copy, set COPY and shift parameters forward
-if [ "$1" = "-c" ] || [ "$1" = "--copy" ]
-then COPY=1
-shift
-fi
-
-#When the first parameter is -f or --force, set FORCE and shift parameters forward
-if [ "$1" = "-f" ] || [ "$1" = "--force" ]
-then FORCE=1
-shift
-fi
-
-#When the first parameter is -o or --out and second is a writable directory, output to that directory instead
-if [ "$1" = "-o" ] || [ "$1" = "--out" ]
-then
-	if [ -d "${2%/}" ] && [ -w "${2%/}" ]
-	then OUT="${2%/}"
-	shift 2
-	else
-		echo "Error: $1 requires a writable directory as parameter, '$2' given"
-		exit 1
-	fi
-fi
-
-#When the first parameter is -o or --out and second is a writable directory, output to that directory instead
-if [ "$1" = "-g" ] || [ "$1" = "--dgst" ]
-then
-	if [ -n "${2}" ] && [ "$(test_digest ${2})" = "0" ]
-	then DGST="${2}"
-	shift 2
-	else
-		echo "Error: $1 requires a valid message-digest, '$2' given"
-		exit 1
-	fi
-fi
+#Main
+while test $# -gt 0; do
+	case "$1" in
+		-h|--help)
+			show_usage
+			exit 0
+			;;
+		-d|--dry)
+			DRY=1
+			shift
+			;;
+		-c|--copy)
+			COPY=1
+			shift
+			;;
+		-f|force)
+			FORCE=1
+			shift
+			;;
+		-o|--out)
+			if test $# -gt 1
+			then
+				if [ -d "${2%/}" ] && [ -w "${2%/}" ]
+				then
+					OUT="${2%/}"
+				else
+					echo "Error: $1 requires a writable directory as parameter, '$2' given"
+					exit 1
+				fi
+			else
+				echo "Error: Missing argument DIRECTORY for $1"
+				exit 1
+			fi
+			shift 2
+			;;
+		-g|--digest)
+			if test $# -gt 1
+			then
+				if [ "$(test_digest ${2})" = "0" ]
+				then
+					DGST="${2}"
+				else
+					echo "Error: $1 requires a valid message-digest, '$2' given"
+					exit 1
+				fi
+			else
+				echo "Error: Missing argument DIGEST for $1"
+				exit 1
+			fi
+			shift 2
+			;;
+		-*)
+			echo "Error: Unknown option '$1'. Aborting!"
+			exit 1
+			;;
+		*)
+			#File parameters start here. Will not work if files start with -, but I don't think I know anyone who names files like that
+			break
+			;;
+	esac
+done
 
 #If no other parameters are found, print error and show usage, then exit
 if [ "$#" -lt 1 ]
