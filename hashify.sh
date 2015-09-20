@@ -1,10 +1,10 @@
 #!/bin/bash
-#Name: MD5ify
-#Summary: Rename file to md5sum of file
+#Name: Hashify
+#Summary: Rename file to hash of file
 #Author: David Stockinger <https://github.com/MechMK1>
 
 #Config
-#Default hash digest
+#Default hash digest, will be overwritten by -g
 DGST="md5"
 
 #Enable extglob or else get_suffix_case will fail
@@ -41,7 +41,7 @@ function show_usage
 	echo " -c       |--copy         : Copy files instead of renaming"
 	echo " -f       |--force        : Force rename of unknown multi-suffix files."
 	echo " -o DIR   |--out DIR      : Move files to DIR instead of their source directory"
-	echo " -g DGST  |--digest DGST  : Use DGST instead of MD5 as default"
+	echo " -g DGST  |--digest DGST  : Use DGST instead of default ($DGST)"
 	echo " -h       |--help         : Show this message and exit"
 }
 
