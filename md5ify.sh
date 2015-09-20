@@ -37,6 +37,7 @@ function processFile {
 	if [ -f "$FILE" ]
 	then
 		HASH="$(openssl dgst -md5 $FILE | tail -c 33)"
+		DIR="$(dirname $FILE)"
 		MODE="$(getExts \"$FILE\")"
 		case "$MODE" in
 			3)	echo "File has unknown multi-extension '${FILE#*.}'"
@@ -47,20 +48,20 @@ function processFile {
 				;;
 			2)
 				if [ -z "$DRY" ]
-				then mv "$FILE" "$HASH.${FILE#*.}"
-				else echo "mv \"$FILE\" \"$HASH.${FILE#*.}\""
+				then mv "$FILE" "$DIR/$HASH.${FILE#*.}"
+				else echo "mv \"$FILE\" \"$DIR/$HASH.${FILE#*.}\""
 				fi
 				;;
 			1)
 				if [ -z "$DRY" ]
-				then mv "$FILE" "$HASH.${FILE#*.}"
-				else echo "mv \"$FILE\" \"$HASH.${FILE#*.}\""
+				then mv "$FILE" "$DIR/$HASH.${FILE#*.}"
+				else echo "mv \"$FILE\" \"$DIR/$HASH.${FILE#*.}\""
 				fi
 				;;
 			0)
 				if [ -z "$DRY" ]
-				then mv "$FILE" "$HASH"
-				else echo "mv \"$FILE\" \"$HASH\""
+				then mv "$FILE" "$DIR/$HASH"
+				else echo "mv \"$FILE\" \"$DIR/$HASH\""
 				fi
 				;;
 			-1|*)
