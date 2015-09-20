@@ -37,8 +37,14 @@ function process_file {
 
 	if [ -f "$FILE" ]
 	then
-		HASH="$(openssl dgst -md5 $FILE | tail -c 33)"
 		DIR="$(dirname $FILE)"
+		if [ ! -w "$DIR" ]
+		then
+			echo "Error: '$DIR' is not writable. Renaming not possible"
+			continue
+		fi
+
+		HASH="$(openssl dgst -md5 $FILE | tail -c 33)"
 		MODE="$(get_suffix_case \"$FILE\")"
 		case "$MODE" in
 			3)	echo "File has unknown multi-extension '${FILE#*.}'"
