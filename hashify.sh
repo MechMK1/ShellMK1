@@ -208,10 +208,12 @@ while test $# -gt 0; do
 					OUT="${2%/}"
 				else
 					echo "Error: $1 requires a writable directory as parameter, '$2' given"
+					show_usage
 					exit 1
 				fi
 			else
 				echo "Error: Missing argument DIRECTORY for $1"
+				show_usage
 				exit 1
 			fi
 			shift 2
@@ -224,16 +226,19 @@ while test $# -gt 0; do
 					DGST="${2}"
 				else
 					echo "Error: $1 requires a valid message-digest, '$2' given"
+					show_usage
 					exit 1
 				fi
 			else
 				echo "Error: Missing argument DIGEST for $1"
+				show_usage
 				exit 1
 			fi
 			shift 2
 			;;
 		-*)
 			echo "Error: Unknown option '$1'. Aborting!"
+			show_usage
 			exit 1
 			;;
 		*)
