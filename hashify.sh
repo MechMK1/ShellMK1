@@ -196,7 +196,7 @@ while test $# -gt 0; do
 			COPY=1
 			shift
 			;;
-		-f|force)
+		-f|--force)
 			FORCE=1
 			shift
 			;;
