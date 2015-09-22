@@ -10,10 +10,10 @@ shopt -s extglob
 #Default hash digest, will be overwritten by -g
 DGST="md5"
 
-#Displays a nice usage menu and stops
+#Displays a nice usage menu
 function show_usage
 {
-	echo "Usage: $0 [OPTIONS] FILE"
+	echo "Usage: $0 [OPTION]... FILE..."
 	echo ""
 	echo "Options:"
 	echo " -d       |--dry          : Enable Dry-Running. No files will be renamed"
