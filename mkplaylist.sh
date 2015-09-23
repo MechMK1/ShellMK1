@@ -29,8 +29,8 @@ function verbose
 #NOTE: Feel free to add more suffixes if your player supports them.
 function is_audio
 {
-	verbose "is_audio: '$1'"
-	case "$1" in
+	verbose "is_audio: '$@'"
+	case "$@" in
 		*.aif) ;&
 		*.aiff);&
 		*.flac);&
@@ -64,9 +64,9 @@ function process_file
 {
 	local FILE="$1"
 	verbose "process_file: '$FILE'"
-	local IS_AUDIO=$(is_audio "$FILE") #Don't ask me why "$(is_audio $FILE)" doesn't work. It just doesn't.
+	#local IS_AUDIO=$(is_audio "$FILE") #Don't ask me why "$(is_audio $FILE)" doesn't work. It just doesn't.
 
-	if [ "$IS_AUDIO" = "0" ]
+	if [ "$(is_audio $FILE)" = "0" ]
 	then print_file "$FILE"
 	fi
 }
