@@ -259,6 +259,7 @@ while test $# -gt 0; do
 			;;
 		-v|--verbose)
 			VERBOSE="verbose"
+			verbose "Verbose mode enabled"
 			shift
 			;;
 		-o|--out)
