@@ -34,7 +34,7 @@ function show_usage
 #Returns which use-case to handle according to the files suffix, suffixes or lack thereof
 function get_suffix_case
 {
-	case "$1" in
+	case "$@" in
 		*.tar.*);&
 		*.iso.*);&
 		*.o.*);&
@@ -55,7 +55,7 @@ function get_suffix_case
 #Tests if digest given by -g is valid
 function test_digest
 {
-	case "$1" in
+	case "$@" in
 		md4|md5|ripemd160|sha|sha1|sha224|sha256|sha384|sha512|whirlpool)
 			echo "0"
 			;;	#Digest is whitelisted and can be passed to OpenSSL
@@ -138,26 +138,27 @@ function commit_changes
 
 #Process each file individually
 function process_file {
-	FILE="$1"
+	FILE="$@"
 
 	if [ -f "$FILE" ]
 	then
 		#Get directory part of filename and make sure it's writable
-		DIR="$(dirname $FILE)"
+		DIR="$(dirname "${FILE}")"
+
 		if [ ! -w "$DIR" ]
 		then
-			echo "Error: '$DIR' is not writable. Renaming not possible"
+			echo "Error: '$DIR' is not writable. Renaming not possible" >&2
 			continue
 		fi
 
 		#Calculate hash and make a mini-self test.
-		HASH="$(openssl dgst -r -$DGST $FILE 2>/dev/null | cut -d ' ' -f1)"
+		HASH="$(openssl dgst -r -$DGST "$FILE" 2>/dev/null | cut -d ' ' -f1)"
 		if [ -z "$HASH" ]
-		then echo "Error: Hash is empty. This should never happen. Please file a bug report at https://github.com/MechMK1/ShellMK1"; exit 1;
+		then echo "Error: Hash is empty. This should never happen. Please file a bug report at https://github.com/MechMK1/ShellMK1" >&2; exit 1;
 		fi
 
 		#Get rename mode. 3=unknown multi-suffix, 2=known multi-suffix, 1=normal suffix, 0=no suffix, -1=fail
-		MODE="$(get_suffix_case \"$FILE\")"
+		MODE="$(get_suffix_case "$FILE")"
 		case "$MODE" in
 			3)
 				echo "Unknown multi-suffix '${FILE#*.}'. $DGST hash for '$FILE' is '$HASH'"
@@ -213,12 +214,12 @@ while test $# -gt 0; do
 				then
 					OUT="${2%/}"
 				else
-					echo "Error: $1 requires a writable directory as parameter, '$2' given"
+					echo "Error: $1 requires a writable directory as parameter, '$2' given" >&2
 					show_usage
 					exit 1
 				fi
 			else
-				echo "Error: Missing argument DIRECTORY for $1"
+				echo "Error: Missing argument DIRECTORY for $1" >&2
 				show_usage
 				exit 1
 			fi
@@ -227,23 +228,23 @@ while test $# -gt 0; do
 		-g|--digest)
 			if test $# -gt 1
 			then
-				if [ "$(test_digest ${2})" = "0" ]
+				if [ "$(test_digest "${2}")" = "0" ]
 				then
 					DGST="${2}"
 				else
-					echo "Error: $1 requires a valid message-digest, '$2' given"
+					echo "Error: $1 requires a valid message-digest, '$2' given" >&2
 					show_usage
 					exit 1
 				fi
 			else
-				echo "Error: Missing argument DIGEST for $1"
+				echo "Error: Missing argument DIGEST for $1" >&2
 				show_usage
 				exit 1
 			fi
 			shift 2
 			;;
 		-*)
-			echo "Error: Unknown option '$1'. Aborting!"
+			echo "Error: Unknown option '$1'. Aborting!" >&2
 			show_usage
 			exit 1
 			;;
@@ -257,7 +258,7 @@ done
 #If no other parameters are found, print error and show usage, then exit
 if [ "$#" -lt 1 ]
 then
-	echo "Error: Missing parameter FILE"
+	echo "Error: Missing parameter FILE" >&2
 	show_usage
 	exit 1
 fi
