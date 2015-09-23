@@ -11,7 +11,6 @@ function show_usage
 	echo "Options:"
 	echo " -n       |--no-recurse   : Do not recurse. Any found directories will be ignored."
 	echo " -v       |--verbose      : Print more verbose output"
-	echo " -t       |--test         : Test if all required tools are available and print report"
 	echo " -h       |--help         : Show this message and exit"
 	echo ""
 	echo "Note: When -- is given as argument, all following argument will not be interpreted as options"
@@ -21,58 +20,6 @@ function verbose
 {
 	if [ -n "$VERBOSE" ] && [ -n "$1" ]
 	then echo "$1" >&2
-	fi
-}
-
-#TODO
-function test_tools
-{
-	OK=0
-
-	if shopt -q extglob
-	then echo "Bash extglob set...OK"
-	else echo "Bash extglob set...FAIL"
-		OK=-1
-	fi
-
-	if which openssl > /dev/null
-	then echo "OpenSSL usable.....OK"
-	else echo "OpenSSL usable.....FAIL"
-		OK=-1
-	fi
-
-	if which cut > /dev/null
-	then echo "cut usable.........OK"
-	else echo "cut usable.........FAIL <- WTF"
-		OK=-1
-	fi
-
-	if which mv > /dev/null
-	then echo "mv usable..........OK"
-	else echo "mv usable..........FAIL <- WTF"
-		OK=-1
-	fi
-
-	if which cp > /dev/null
-	then echo "cp usable..........OK"
-	else echo "cp usable..........FAIL <- WTF"
-		OK=-1
-	fi
-
-	if which dirname > /dev/null
-	then echo "dirname usable.....OK"
-	else echo "dirname usable.....FAIL"
-		OK=-1
-	fi
-
-	echo ""
-
-	if [ "$OK" = "0" ]
-	then
-		echo "Everything ok! $0 should be usable without problems!"
-		echo "Protip: The author suggests leaving COMMON_SENSE on 'enabled' at all times"
-	else
-		echo "Some problems were detected. See above which tests failed"
 	fi
 }
 
@@ -112,7 +59,7 @@ function process_file
 {
 	local FILE="$1"
 	verbose "process_file: '$FILE'"
-	local IS_AUDIO=$(is_audio "$FILE")
+	local IS_AUDIO=$(is_audio "$FILE") #Don't ask me why "$(is_audio $FILE)" doesn't work. It just doesn't.
 
 	if [ "$IS_AUDIO" = "0" ]
 	then print_file "$FILE"
@@ -147,10 +94,6 @@ while test $# -gt 0; do
 	case "$1" in
 		-h|--help)
 			show_usage
-			exit 0
-			;;
-		-t|--test)
-			test_tools
 			exit 0
 			;;
 		-n|--no-recurse)
