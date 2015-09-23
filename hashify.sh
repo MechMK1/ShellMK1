@@ -36,8 +36,9 @@ function show_usage
 #Echoes a message if VERBOSE is set
 function verbose
 {
-	if [ -n "$VERBOSE" ] && [ -n "$1" ]
-	then echo "${FUNCNAME[1]}: $1" >&2
+	local MSG="$@"
+	if [ -n "$VERBOSE" ] && [ -n "$MSG" ]
+	then echo "${FUNCNAME[1]}: $MSG" >&2
 	fi
 }
 
