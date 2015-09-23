@@ -64,9 +64,7 @@ function process_file
 {
 	local FILE="$1"
 	verbose "process_file: '$FILE'"
-	#local IS_AUDIO=$(is_audio "$FILE") #Don't ask me why "$(is_audio $FILE)" doesn't work. It just doesn't.
-
-	if [ "$(is_audio $FILE)" = "0" ]
+	if [ "$(is_audio "$FILE")" = "0" ]
 	then print_file "$FILE"
 	fi
 }
@@ -115,7 +113,7 @@ while test $# -gt 0; do
 			break
 			;;
 		-*)
-			echo "Error: Unknown option '$1'. Aborting!"
+			echo "Error: Unknown option '$1'. Aborting!" >&2
 			show_usage
 			exit 1
 			;;
@@ -142,7 +140,7 @@ do
 	elif [ -d "$arg" ]
 	then process_directory "$arg"
 	else
-		echo "Error: '$arg' is neither a file nor directory. Skipping..."
+		echo "Error: '$arg' is neither a file nor directory. Skipping..." >&2
 		continue
 	fi
 done
