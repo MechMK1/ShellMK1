@@ -144,5 +144,3 @@ do
 		continue
 	fi
 done
-#!/bin/bash
-
