@@ -20,7 +20,7 @@ function show_usage
 function verbose
 {
 	if [ -n "$VERBOSE" ] && [ -n "$1" ]
-	then echo "$1" >&2
+	then echo "${FUNCNAME[1]}: $1" >&2
 	fi
 }
 
@@ -29,7 +29,7 @@ function verbose
 #NOTE: Feel free to add more suffixes if your player supports them.
 function is_audio
 {
-	verbose "is_audio: '$@'"
+	verbose "FILE: '$@'"
 	case "$@" in
 		*.aif) ;&
 		*.aiff);&
@@ -42,11 +42,11 @@ function is_audio
 		*.ogg) ;&
 		*.wav) ;&
 		*.wma)
-			verbose "is_audio: yes"
+			verbose "Result: yes"
 			echo "0" # Any of these is a known audio format. Feel free to add your own audio format to the list
 			;;
 		*)
-			verbose "is_audio: no"
+			verbose "Result: no"
 			echo "-1"
 			;;
 	esac
@@ -63,7 +63,7 @@ function print_file
 function process_file
 {
 	local FILE="$1"
-	verbose "process_file: '$FILE'"
+	verbose "'$FILE'"
 	if [ "$(is_audio "$FILE")" = "0" ]
 	then print_file "$FILE"
 	fi
@@ -73,21 +73,21 @@ function process_file
 function process_directory
 {
 	local DIR="${1%/}"
-	verbose "process_directory: '$DIR'"
+	verbose "'$DIR'"
 
 	for f in "$DIR"/*
 	do
-		verbose "process_directory: Found '$f'"
+		verbose "Found '$f'"
 		if [ -f "$f" ]
 		then process_file "$f" #If what has been found is a regular(!) file, process it
 		elif [ -d "$f" ]
 		then
 			if [ -z "$NO_RECURSE" ] #If NO_RECURSE is NOT set
 			then process_directory "$f" #If what has been found is a directory and NO_RECURSE is not set, process it
-			else verbose "process_directory: '$f' is directory, but NO_RECURSE is set" #Else, give a verbose message that it will not be processed
+			else verbose "'$f' is directory, but NO_RECURSE is set" #Else, give a verbose message that it will not be processed
 			fi
 		else
-			verbose "process_directory: '$f' is neither a regular file nor directory. Skipping..." #If $f is neither a regular file or directory, skip it.
+			verbose "'$f' is neither a regular file nor directory. Skipping..." #If $f is neither a regular file or directory, skip it.
 			continue
 		fi
 	done
@@ -106,6 +106,7 @@ while test $# -gt 0; do
 			;;
 		-v|--verbose)
 			VERBOSE="verbose"
+			verbose "Verbose mode enabled"
 			shift
 			;;
 		--)
@@ -127,7 +128,7 @@ done
 #If no other parameters are found, default to the current directory
 if [ "$#" -lt 1 ]
 then
-	verbose "main: No file or directory arguments found. Defaulting to ."
+	verbose "No file or directory arguments found. Defaulting to ."
 	process_directory "."
 	exit 0
 fi
@@ -136,9 +137,13 @@ fi
 for arg in "$@"
 do
 	if [ -f "$arg" ]
-	then process_file "$arg"
+	then
+		vebose "'$arg' is regular file"
+		process_file "$arg"
 	elif [ -d "$arg" ]
-	then process_directory "$arg"
+	then
+		verbose "'$arg' is directory"
+		process_directory "$arg"
 	else
 		echo "Error: '$arg' is neither a file nor directory. Skipping..." >&2
 		continue
