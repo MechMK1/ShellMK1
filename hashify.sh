@@ -3,12 +3,18 @@
 #Summary: Rename file to hash of file
 #Author: David Stockinger <https://github.com/MechMK1>
 
+# KNOWN BUGS ####################################################################################
+# - Files starting with a dash (-) cause problems                                               #
+#   Yes, it's because OpenSSL doesn't support the -- parameter thingy. It's their bug, not mine #
+#################################################################################################
+
+# Config ########################################################################################
+#Default hash digest, will be overwritten by -g                                                 #
+DGST="md5"                                                                                      #
+#################################################################################################
+
 #Enable extglob or else get_suffix_case will fail
 shopt -s extglob
-
-#Config
-#Default hash digest, will be overwritten by -g
-DGST="md5"
 
 #Displays a nice usage menu
 function show_usage
