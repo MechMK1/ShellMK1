@@ -57,7 +57,7 @@ function is_audio
 function print_file
 {
 	local FILE="$1"
-	echo "$FILE"
+	echo "${FILE#./}" #Remove preceeding ./
 }
 
 #Process a single file
