@@ -37,7 +37,7 @@ If any checks fail, print an error to inform the user exactly what failed.
 		fi
 	else
 		echo "Error: Missing argument DIRECTORY for $1" >&2 # Print an error to STDERR if there is no second argument
-		exit 1 # Exit, since argument errors sgould never be skipped
+		exit 1 # Exit, since argument errors should never be skipped
 	fi
 	shift 2 # Shift by two, since -o DIR are technically two parameters
 	;;
