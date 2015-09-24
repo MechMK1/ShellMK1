@@ -29,13 +29,15 @@ function verbose
 	fi
 }
 
-#Only print options when --verbose is enabled
+#Print all the options
 function print_options
 {
-	verbose "Dry  : $DRY"
-	verbose "Copy : $COPY"
-	verbose "Force: $FORCE"
-	verbose "Out  : $OUT"
+	echo "Dry     : $DRY"
+	echo "Copy    : $COPY"
+	echo "Force   : $FORCE"
+	echo "Out     : $OUT"
+	echo "Verbose : $VERBOSE"
+	echo "---------"
 }
 
 #Dummy function
@@ -116,7 +118,6 @@ done
 
 
 verbose "Checking if we have at least one more parameter left after shifting"
-verbose This can also be done without quotes
 #If no other parameters are found, print error and show usage, then exit
 #This only matters if your script requires at least one non-flag input
 if [ "$#" -lt 1 ]
